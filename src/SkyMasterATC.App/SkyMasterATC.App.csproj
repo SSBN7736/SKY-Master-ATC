@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>SkyMasterATC</AssemblyName>
+    <RootNamespace>SkyMasterATC.App</RootNamespace>
+    <StartupObject>SkyMasterATC.App.App</StartupObject>
+    <!-- Allow cross-compilation on non-Windows hosts (Linux CI) -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SkyMasterATC.Core\SkyMasterATC.Core.csproj" />
+    <ProjectReference Include="..\SkyMasterATC.SimConnect\SkyMasterATC.SimConnect.csproj" />
+    <ProjectReference Include="..\SkyMasterATC.Traffic\SkyMasterATC.Traffic.csproj" />
+  </ItemGroup>
+
+</Project>
