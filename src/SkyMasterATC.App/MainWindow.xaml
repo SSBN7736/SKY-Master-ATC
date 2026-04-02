@@ -1,0 +1,372 @@
+<Window x:Class="SkyMasterATC.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:SkyMasterATC.App.Controls"
+        Title="SkyMaster ATC"
+        Height="720" Width="1200"
+        MinHeight="480" MinWidth="800"
+        Background="#1E1E2E">
+
+    <Window.Resources>
+        <!-- Base text style -->
+        <Style x:Key="BaseText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#CDD6F4"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Buttons -->
+        <Style x:Key="Btn" TargetType="Button">
+            <Setter Property="Background" Value="#313244"/>
+            <Setter Property="Foreground" Value="#CDD6F4"/>
+            <Setter Property="BorderBrush" Value="#45475A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,5"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#45475A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="BtnRed" TargetType="Button" BasedOn="{StaticResource Btn}">
+            <Setter Property="Background" Value="#6E2222"/>
+            <Setter Property="BorderBrush" Value="#F38BA8"/>
+            <Setter Property="Foreground" Value="#F38BA8"/>
+        </Style>
+
+        <Style x:Key="BtnGreen" TargetType="Button" BasedOn="{StaticResource Btn}">
+            <Setter Property="Background" Value="#1E4620"/>
+            <Setter Property="BorderBrush" Value="#A6E3A1"/>
+            <Setter Property="Foreground" Value="#A6E3A1"/>
+        </Style>
+
+        <!-- TextBox -->
+        <Style x:Key="Txt" TargetType="TextBox">
+            <Setter Property="Background" Value="#313244"/>
+            <Setter Property="Foreground" Value="#CDD6F4"/>
+            <Setter Property="CaretBrush" Value="#CDD6F4"/>
+            <Setter Property="BorderBrush" Value="#45475A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="4,3"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <!-- ComboBox -->
+        <Style x:Key="Cmb" TargetType="ComboBox">
+            <Setter Property="Background" Value="#313244"/>
+            <Setter Property="Foreground" Value="#CDD6F4"/>
+            <Setter Property="BorderBrush" Value="#45475A"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <!-- Label -->
+        <Style x:Key="Lbl" TargetType="Label">
+            <Setter Property="Foreground" Value="#BAC2E8"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Padding" Value="0,2"/>
+        </Style>
+
+        <!-- Section header -->
+        <Style x:Key="SectionHeader" TargetType="TextBlock" BasedOn="{StaticResource BaseText}">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#89DCEB"/>
+            <Setter Property="Margin" Value="0,6,0,4"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>   <!-- Top toolbar -->
+            <RowDefinition Height="*"/>      <!-- Main content -->
+            <RowDefinition Height="Auto"/>   <!-- Status bar -->
+        </Grid.RowDefinitions>
+
+        <!-- ── Top Toolbar ──────────────────────────────────────────────────────── -->
+        <Border Grid.Row="0"
+                Background="#181825"
+                BorderBrush="#313244"
+                BorderThickness="0,0,0,1"
+                Padding="8,5">
+            <DockPanel>
+                <!-- Connection indicator -->
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                    <Ellipse x:Name="StatusIndicator"
+                             Width="10" Height="10"
+                             Fill="#F38BA8"
+                             Margin="4,0,8,0"/>
+                    <TextBlock x:Name="StatusLabel"
+                               Style="{StaticResource BaseText}"
+                               Text="Not Connected"
+                               Margin="0,0,16,0"/>
+                </StackPanel>
+
+                <!-- Action buttons -->
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right"
+                            HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button x:Name="BtnConnect"
+                            Style="{StaticResource Btn}"
+                            Content="Connect"
+                            Click="BtnConnect_Click"
+                            Margin="4,0"/>
+                    <Button x:Name="BtnDisconnect"
+                            Style="{StaticResource Btn}"
+                            Content="Disconnect"
+                            Click="BtnDisconnect_Click"
+                            IsEnabled="False"
+                            Margin="4,0"/>
+                    <Button x:Name="BtnSubscribe"
+                            Style="{StaticResource Btn}"
+                            Content="Start Position Updates"
+                            Click="BtnSubscribe_Click"
+                            Margin="4,0"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- ── Main Content (Radar + Side Panel) ───────────────────────────────── -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="7*"/>
+                <ColumnDefinition Width="3*" MinWidth="260"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Radar -->
+            <controls:RadarControl x:Name="RadarView"
+                                   Grid.Column="0"
+                                   TrackSelected="RadarView_TrackSelected"/>
+
+            <!-- Side panel separator -->
+            <GridSplitter Grid.Column="0"
+                          Width="3"
+                          HorizontalAlignment="Right"
+                          Background="#313244"
+                          ResizeBehavior="BasedOnAlignment"/>
+
+            <!-- Side TabControl -->
+            <TabControl Grid.Column="1"
+                        Background="#181825"
+                        BorderBrush="#313244"
+                        Foreground="#CDD6F4"
+                        FontFamily="Segoe UI"
+                        FontSize="12">
+
+                <!-- ── Aircraft tab ──────────────────────────────────────────── -->
+                <TabItem Header="Aircraft">
+                    <Grid Margin="6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <ListBox x:Name="AircraftList"
+                                 Grid.Row="0"
+                                 Background="#11111B"
+                                 Foreground="#CDD6F4"
+                                 BorderBrush="#313244"
+                                 FontFamily="Consolas"
+                                 FontSize="11"
+                                 SelectionChanged="AircraftList_SelectionChanged"
+                                 Margin="0,0,0,6"/>
+
+                        <Button Grid.Row="1"
+                                Style="{StaticResource BtnRed}"
+                                Content="Despawn Selected"
+                                Click="BtnDespawn_Click"/>
+                    </Grid>
+                </TabItem>
+
+                <!-- ── Spawn tab ─────────────────────────────────────────────── -->
+                <TabItem Header="Spawn">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="8">
+                            <TextBlock Style="{StaticResource SectionHeader}" Text="SimObjects Folder"/>
+                            <DockPanel Margin="0,0,0,6">
+                                <Button DockPanel.Dock="Right"
+                                        Style="{StaticResource Btn}"
+                                        Content="Browse"
+                                        Click="BtnBrowseSimObjects_Click"
+                                        Margin="4,0,0,0"/>
+                                <TextBox x:Name="TxtSimObjectsPath"
+                                         Style="{StaticResource Txt}"
+                                         Text="C:\MSFS\SimObjects"/>
+                            </DockPanel>
+                            <Button Style="{StaticResource Btn}"
+                                    Content="Scan"
+                                    Click="BtnScan_Click"
+                                    Margin="0,0,0,8"/>
+
+                            <TextBlock Style="{StaticResource SectionHeader}" Text="Aircraft Model"/>
+                            <ComboBox x:Name="CmbAircraftType"
+                                      Style="{StaticResource Cmb}"
+                                      Margin="0,0,0,6"
+                                      DisplayMemberPath="Title"/>
+
+                            <TextBlock Style="{StaticResource SectionHeader}" Text="Position"/>
+                            <Label Style="{StaticResource Lbl}" Content="Latitude"/>
+                            <TextBox x:Name="TxtLat" Style="{StaticResource Txt}" Text="51.4775" Margin="0,0,0,4"/>
+                            <Label Style="{StaticResource Lbl}" Content="Longitude"/>
+                            <TextBox x:Name="TxtLon" Style="{StaticResource Txt}" Text="-0.4614" Margin="0,0,0,4"/>
+                            <Label Style="{StaticResource Lbl}" Content="Altitude (ft)"/>
+                            <TextBox x:Name="TxtAlt" Style="{StaticResource Txt}" Text="0" Margin="0,0,0,4"/>
+                            <Label Style="{StaticResource Lbl}" Content="Heading (°)"/>
+                            <TextBox x:Name="TxtHeading" Style="{StaticResource Txt}" Text="090" Margin="0,0,0,8"/>
+
+                            <Button Style="{StaticResource BtnGreen}"
+                                    Content="Spawn Aircraft"
+                                    Click="BtnSpawn_Click"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- ── ATC tab ───────────────────────────────────────────────── -->
+                <TabItem Header="ATC">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="8">
+                            <TextBlock x:Name="TxtSelectedAc"
+                                       Style="{StaticResource BaseText}"
+                                       Text="No aircraft selected"
+                                       Foreground="#6C7086"
+                                       Margin="0,0,0,8"/>
+
+                            <!-- Ground / Tower -->
+                            <TextBlock Style="{StaticResource SectionHeader}" Text="Ground / Tower"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Button x:Name="BtnPushback"
+                                        Style="{StaticResource Btn}"
+                                        Content="Pushback"
+                                        Click="BtnPushback_Click"
+                                        IsEnabled="False"
+                                        Margin="0,0,4,0"/>
+                                <Button x:Name="BtnTaxi"
+                                        Style="{StaticResource Btn}"
+                                        Content="Taxi"
+                                        Click="BtnTaxi_Click"
+                                        IsEnabled="False"
+                                        Margin="0,0,4,0"/>
+                                <Button x:Name="BtnTakeoff"
+                                        Style="{StaticResource Btn}"
+                                        Content="Clear T/O"
+                                        Click="BtnTakeoff_Click"
+                                        IsEnabled="False"/>
+                            </StackPanel>
+
+                            <!-- Approach / Center -->
+                            <TextBlock Style="{StaticResource SectionHeader}" Text="Approach / Center"/>
+                            <Label Style="{StaticResource Lbl}" Content="Altitude (ft)"/>
+                            <DockPanel Margin="0,0,0,4">
+                                <Button DockPanel.Dock="Right"
+                                        x:Name="BtnAssignAlt"
+                                        Style="{StaticResource Btn}"
+                                        Content="Assign"
+                                        Click="BtnAssignAlt_Click"
+                                        IsEnabled="False"
+                                        Margin="4,0,0,0"/>
+                                <TextBox x:Name="TxtAssignAlt" Style="{StaticResource Txt}" Text="25000"/>
+                            </DockPanel>
+
+                            <Label Style="{StaticResource Lbl}" Content="Heading (°)"/>
+                            <DockPanel Margin="0,0,0,4">
+                                <Button DockPanel.Dock="Right"
+                                        x:Name="BtnAssignHdg"
+                                        Style="{StaticResource Btn}"
+                                        Content="Assign"
+                                        Click="BtnAssignHdg_Click"
+                                        IsEnabled="False"
+                                        Margin="4,0,0,0"/>
+                                <TextBox x:Name="TxtAssignHdg" Style="{StaticResource Txt}" Text="270"/>
+                            </DockPanel>
+
+                            <Label Style="{StaticResource Lbl}" Content="Speed (kts)"/>
+                            <DockPanel Margin="0,0,0,8">
+                                <Button DockPanel.Dock="Right"
+                                        x:Name="BtnAssignSpd"
+                                        Style="{StaticResource Btn}"
+                                        Content="Assign"
+                                        Click="BtnAssignSpd_Click"
+                                        IsEnabled="False"
+                                        Margin="4,0,0,0"/>
+                                <TextBox x:Name="TxtAssignSpd" Style="{StaticResource Txt}" Text="250"/>
+                            </DockPanel>
+
+                            <!-- QRA -->
+                            <TextBlock Style="{StaticResource SectionHeader}" Text="Quick Reaction Alert"/>
+                            <Button x:Name="BtnScramble"
+                                    Style="{StaticResource BtnRed}"
+                                    Content="⚡ SCRAMBLE"
+                                    FontSize="13"
+                                    FontWeight="Bold"
+                                    Click="BtnScramble_Click"
+                                    IsEnabled="False"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- ── TTS tab ───────────────────────────────────────────────── -->
+                <TabItem Header="TTS">
+                    <StackPanel Margin="8">
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Voice"/>
+                        <ComboBox x:Name="CmbVoice"
+                                  Style="{StaticResource Cmb}"
+                                  Margin="0,0,0,8"
+                                  SelectionChanged="CmbVoice_SelectionChanged"/>
+
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Custom Phrase"/>
+                        <TextBox x:Name="TxtTtsPhrase"
+                                 Style="{StaticResource Txt}"
+                                 Text="SkyMaster ATC online."
+                                 Margin="0,0,0,6"/>
+                        <Button Style="{StaticResource Btn}"
+                                Content="Speak"
+                                Click="BtnSpeak_Click"/>
+                    </StackPanel>
+                </TabItem>
+            </TabControl>
+        </Grid>
+
+        <!-- ── Status Bar ────────────────────────────────────────────────────────── -->
+        <Border Grid.Row="2"
+                Background="#181825"
+                BorderBrush="#313244"
+                BorderThickness="0,1,0,0"
+                Padding="8,3">
+            <DockPanel>
+                <TextBlock x:Name="TxtLastCommand"
+                           Style="{StaticResource BaseText}"
+                           Text="Last command: —"
+                           DockPanel.Dock="Left"
+                           FontSize="11"/>
+                <TextBlock x:Name="TxtLastTts"
+                           Style="{StaticResource BaseText}"
+                           Text="Last TTS: —"
+                           HorizontalAlignment="Right"
+                           FontSize="11"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>
