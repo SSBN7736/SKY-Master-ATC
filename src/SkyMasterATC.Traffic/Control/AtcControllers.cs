@@ -125,12 +125,8 @@ namespace SkyMasterATC.Traffic.Control
 
         private void IssueCommand(AtcCommand command)
         {
-            // Transmit appropriate SimConnect event where direct mappings exist.
-            // Note: SimConnect has no direct AI-aircraft speed-override event,
-            // so speed assignments are communicated via TTS only.
-            if (command.CommandType == AtcCommandType.Pushback)
-                _simConnect.TransmitClientEvent(command.TargetObjectId, SimEventId.PushbackSet, 1);
-
+            // Note: SimConnect has no direct AI-aircraft altitude/heading/speed-override events,
+            // so all approach/center assignments are communicated via TTS.
             CommandIssued?.Invoke(this, command);
             var callsign = GetCallsign(command.TargetObjectId);
             _ = _tts.SpeakAtcPhrase(command, callsign);

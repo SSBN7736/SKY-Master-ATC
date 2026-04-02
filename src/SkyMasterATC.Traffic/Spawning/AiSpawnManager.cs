@@ -59,7 +59,7 @@ namespace SkyMasterATC.Traffic.Spawning
                 AltitudeFt     = altitudeFt,
                 HeadingDeg     = headingDeg,
                 SpeedKnots     = onGround ? 0 : 250,
-                Squawk         = Random.Shared.Next(2001, 7777).ToString(),
+                Squawk         = Random.Shared.Next(2001, 7778).ToString(),
                 LastUpdatedUtc = DateTime.UtcNow,
             };
 

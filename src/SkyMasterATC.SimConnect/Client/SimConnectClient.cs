@@ -293,7 +293,7 @@ namespace SkyMasterATC.SimConnect.Client
         private static string GenerateSquawk()
         {
             // Return a random discrete squawk in range 2001-7776.
-            int code = Random.Shared.Next(2001, 7777);
+            int code = Random.Shared.Next(2001, 7778);
             return code.ToString();
         }
 
