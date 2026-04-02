@@ -91,7 +91,7 @@ namespace SkyMasterATC.Core.Services
             command.CommandType switch
             {
                 AtcCommandType.AltitudeAssignment =>
-                    $"{callsign}, descend and maintain flight level {(int)(command.Value / 100)}",
+                    $"{callsign}, maintain flight level {(int)(command.Value / 100)}",
                 AtcCommandType.HeadingVector =>
                     $"{callsign}, fly heading {(int)command.Value:D3}",
                 AtcCommandType.SpeedRestriction =>

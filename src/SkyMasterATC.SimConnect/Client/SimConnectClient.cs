@@ -27,7 +27,8 @@ namespace SkyMasterATC.SimConnect.Client
         private IntPtr _hwnd;
         private bool _disposed;
 
-        // ── Stub-mode AI aircraft store ──────────────────────────────────────────
+        private const double MinCosLat = 1e-9; // Guard against division by zero near poles
+
         private readonly Dictionary<uint, SimAircraft> _simAircraft = new();
         private readonly object _aircraftLock = new();
         private uint _nextObjectId = 1;
@@ -255,7 +256,7 @@ namespace SkyMasterATC.SimConnect.Client
                 double cosLat  = Math.Cos(aircraft.Latitude * Math.PI / 180.0);
 
                 aircraft.Latitude  += (distNm * Math.Cos(headRad)) / 60.0;
-                aircraft.Longitude += (distNm * Math.Sin(headRad)) / (60.0 * (Math.Abs(cosLat) < 1e-9 ? 1e-9 : cosLat));
+                aircraft.Longitude += (distNm * Math.Sin(headRad)) / (60.0 * Math.Max(Math.Abs(cosLat), MinCosLat));
                 aircraft.LastUpdatedUtc = DateTime.UtcNow;
 
                 AircraftUpdated?.Invoke(this, aircraft);
@@ -272,10 +273,9 @@ namespace SkyMasterATC.SimConnect.Client
 
         private static string GenerateCallsign(string title)
         {
-            // Derive a short callsign from the first word of the title + random digits.
-            var prefix = title.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                              .FirstOrDefault()?[..Math.Min(3, title.Split(' ').FirstOrDefault()?.Length ?? 3)]
-                              .ToUpper() ?? "AIR";
+            var firstWord = title.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                 .FirstOrDefault() ?? "AIR";
+            var prefix = firstWord[..Math.Min(3, firstWord.Length)].ToUpper();
             return $"{prefix}{Random.Shared.Next(100, 999)}";
         }
 

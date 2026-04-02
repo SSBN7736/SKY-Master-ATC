@@ -108,6 +108,7 @@ namespace SkyMasterATC.Traffic.SimObjectLibrary
             return new SimObjectEntry
             {
                 Title      = title,
+                // ZZZZ is the ICAO standard placeholder designator for unknown/unidentified aircraft types.
                 IcaoType   = string.IsNullOrEmpty(icaoType) ? "ZZZZ" : icaoType.ToUpper(),
                 FolderPath = folderPath,
             };

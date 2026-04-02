@@ -113,7 +113,7 @@ namespace SkyMasterATC.App.Controls
             var pos   = e.GetPosition(this);
             var dx    = pos.X - _dragStart.X;
             var dy    = pos.Y - _dragStart.Y;
-            double scale = RangeNm / (Math.Min(ActualWidth, ActualHeight) / 2.0);
+            double scale = 1.0 / NmScale;  // degrees-per-pixel equivalent via NmScale
             double cosLat = Math.Cos(_dragStartLat * Math.PI / 180.0);
 
             CenterLatitude  = _dragStartLat + (dy * scale) / 60.0;
@@ -128,6 +128,9 @@ namespace SkyMasterATC.App.Controls
         }
 
         // ── Rendering ─────────────────────────────────────────────────────────────
+
+        /// <summary>Pixels per nautical mile based on the current view size and range.</summary>
+        private double NmScale => Math.Min(ActualWidth, ActualHeight) / 2.0 / RangeNm;
 
         private void Redraw()
         {
@@ -145,7 +148,7 @@ namespace SkyMasterATC.App.Controls
         {
             double cx = ActualWidth  / 2.0;
             double cy = ActualHeight / 2.0;
-            double scale = Math.Min(ActualWidth, ActualHeight) / 2.0 / RangeNm;
+            double scale = NmScale;
 
             var ringBrush = new SolidColorBrush(Color.FromArgb(80, 100, 100, 120));
 
