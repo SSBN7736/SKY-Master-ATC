@@ -1,3 +1,6 @@
+using SkyMasterATC.Core.Models;
+using SkyMasterATC.SimConnect.Interop;
+
 namespace SkyMasterATC.SimConnect.Client
 {
     /// <summary>
@@ -19,6 +22,15 @@ namespace SkyMasterATC.SimConnect.Client
         /// <summary>Raised when a recoverable SimConnect error or exception occurs.</summary>
         event EventHandler<Exception>? Error;
 
+        /// <summary>Raised when position data for an AI aircraft arrives.</summary>
+        event EventHandler<SimAircraft>? AircraftUpdated;
+
+        /// <summary>Raised when an AI object is added to the simulation.</summary>
+        event EventHandler<uint>? AiObjectAdded;
+
+        /// <summary>Raised when an AI object is removed from the simulation.</summary>
+        event EventHandler<uint>? AiObjectRemoved;
+
         /// <summary>
         /// Opens a SimConnect session.  Must be called after the WPF window handle
         /// is available (i.e., from <c>OnSourceInitialized</c> or later).
@@ -36,5 +48,26 @@ namespace SkyMasterATC.SimConnect.Client
         /// SimConnect delivers all callbacks synchronously during this call.
         /// </summary>
         void ReceiveMessage();
+
+        /// <summary>Spawns an AI aircraft and returns the assigned SimConnect object ID.</summary>
+        Task<uint> SpawnAiAircraftAsync(
+            string title,
+            double lat,
+            double lon,
+            double altFt,
+            double headingDeg,
+            bool onGround);
+
+        /// <summary>Removes a previously spawned AI aircraft from the simulation.</summary>
+        Task DespawnAiAircraftAsync(uint objectId);
+
+        /// <summary>
+        /// Begins subscribing to periodic position updates for all AI objects.
+        /// Raises <see cref="AircraftUpdated"/> approximately once per second per aircraft.
+        /// </summary>
+        void SubscribeAircraftPositionUpdates();
+
+        /// <summary>Transmits a client event to the simulator for the specified object.</summary>
+        void TransmitClientEvent(uint objectId, SimEventId eventId, uint data);
     }
 }

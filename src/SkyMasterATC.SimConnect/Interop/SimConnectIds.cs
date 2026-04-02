@@ -37,5 +37,14 @@ namespace SkyMasterATC.SimConnect.Interop
 
         /// <summary>Placeholder – maps to "ObjectRemoved" when implemented.</summary>
         ObjectRemoved = 1,
+
+        /// <summary>Maps to "PUSHBACK_SET" simulator event.</summary>
+        PushbackSet = 2,
+
+        /// <summary>Maps to "SET_ATC_ACTIVE" simulator event.</summary>
+        SetAtcActive = 3,
+
+        /// <summary>Maps to "XPNDR_CODE_SET" for transponder code changes.</summary>
+        XpndrCodeSet = 4,
     }
 }

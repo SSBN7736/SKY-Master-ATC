@@ -14,9 +14,10 @@ SkyMasterATC/
 
   src/
     SkyMasterATC.App/              ← WPF desktop application (net8.0-windows)
-      App.xaml / App.xaml.cs       ← Composition root; creates services, launches MainWindow
-      MainWindow.xaml / .cs        ← Main window: status bar, connect/disconnect, radar placeholder
-      Assets/                      ← Icons and static resources
+      App.xaml / App.xaml.cs       ← Composition root; creates all services, launches MainWindow
+      MainWindow.xaml / .cs        ← Full ATC console UI (radar, spawn, ATC, TTS panels)
+      Controls/
+        RadarControl.xaml / .cs    ← Canvas-based radar display with zoom/pan, data tags
 
     SkyMasterATC.Core/             ← Pure business logic – no UI, no SimConnect
       Models/
@@ -24,28 +25,28 @@ SkyMasterATC/
         RadarTrack.cs              ← Radar return snapshot with screen coordinates
         AtcCommand.cs              ← ATC instruction model (altitude, heading, clearances, …)
       Services/
-        RadarRendererService.cs    ← Track store + stub render loop (Phase 3)
-        TtsService.cs              ← Text-to-speech stub (Phase 5)
+        RadarRendererService.cs    ← Track store, LatLonToScreen helper, TracksUpdated event
+        TtsService.cs              ← Windows SAPI TTS via System.Speech (serialised queue)
       Util/
-        Geo.cs                     ← Great-circle distance / bearing helpers
+        Geo.cs                     ← Great-circle distance / bearing / offset helpers
 
     SkyMasterATC.SimConnect/       ← ALL SimConnect interop – isolated from UI and Core
       Client/
-        ISimConnectClient.cs       ← Interface: Connect, Disconnect, ReceiveMessage, events
-        SimConnectClient.cs        ← Concrete client; WndProc pump; #if SIMCONNECT_AVAILABLE
+        ISimConnectClient.cs       ← Interface: Connect, events, spawn, subscribe, transmit
+        SimConnectClient.cs        ← Concrete client; WndProc pump; stub position simulation
       Interop/
         SimConnectConstants.cs     ← APP_NAME, WM_USER_SIMCONNECT
         SimConnectIds.cs           ← DataDefinitionId, DataRequestId, SimEventId enums
       Exceptions/
         SimConnectException.cs     ← Typed exception for SimConnect errors
 
-    SkyMasterATC.Traffic/          ← AI spawning and ATC control stubs (Phase 2–4)
+    SkyMasterATC.Traffic/          ← AI spawning and ATC control
       SimObjectLibrary/
-        SimObjectScanner.cs        ← Scans SimObjects folder; builds aircraft model index
+        SimObjectScanner.cs        ← INI parser scanning SimObjects for aircraft.cfg entries
       Spawning/
-        AiSpawnManager.cs          ← Spawn / despawn AI aircraft via SimConnect
+        AiSpawnManager.cs          ← Spawn / despawn AI aircraft; propagates position updates
       Control/
-        AtcControllers.cs          ← Ground/Tower, Approach/Center, QRA controller stubs
+        AtcControllers.cs          ← Ground/Tower, Approach/Center, QRA controllers
 
   docs/
     architecture.md                ← This file
@@ -59,11 +60,11 @@ SkyMasterATC/
 | Layer | Project | Dependencies |
 |---|---|---|
 | **UI** | `SkyMasterATC.App` | Core, SimConnect, Traffic |
-| **Business logic** | `SkyMasterATC.Core` | _(none)_ |
-| **Simulator interface** | `SkyMasterATC.SimConnect` | _(none – optional managed SDK assembly)_ |
+| **Business logic** | `SkyMasterATC.Core` | System.Speech (Windows SAPI) |
+| **Simulator interface** | `SkyMasterATC.SimConnect` | Core |
 | **Traffic management** | `SkyMasterATC.Traffic` | Core, SimConnect |
 
-`Core` has **no dependencies** so it can be unit-tested without a simulator or UI framework.
+All projects target **net8.0-windows** with `EnableWindowsTargeting=true` so the solution builds on Linux CI without the Windows runtime.
 
 ---
 
@@ -78,22 +79,45 @@ SimConnect on Windows uses a Win32 message-based notification model:
 5. WndProc calls `ISimConnectClient.ReceiveMessage()`, which calls `SimConnect.ReceiveMessage()`.
 6. SimConnect delivers all pending callbacks **synchronously** during that call – no threads needed.
 
-This design keeps CPU overhead near zero between simulator updates.
+When the real SDK assembly is absent (`SIMCONNECT_AVAILABLE` not defined), a stub mode runs: `Connect()` sets `IsConnected = true` immediately, and `SubscribeAircraftPositionUpdates()` starts a 1 Hz timer that moves each spawned aircraft along its heading vector, raising `AircraftUpdated` events so the full rendering pipeline is exercised.
 
 ---
 
 ## Composition Root
 
-`App.xaml.cs` is the composition root.  It constructs all services and injects them where needed.  For Phase 1 the wiring is manual (`new SimConnectClient()`, etc.).  Later phases can migrate to `Microsoft.Extensions.DependencyInjection` without changing the interfaces.
+`App.xaml.cs` constructs all services and wires the cross-cutting event subscriptions:
+
+```
+SimConnectClient
+  └─ AiSpawnManager (subscribes AircraftUpdated / AiObjectRemoved)
+       └─ RadarRendererService  ← UpdateTrack / RemoveTrack on every position update
+  └─ GroundTowerController  (SimConnect events + TTS)
+  └─ ApproachCenterController (SimConnect events + TTS)
+  └─ QraController  (spawns fighter via AiSpawnManager, vectors via ApproachCenter)
+TtsService  (System.Speech SpeechSynthesizer, serialised via SemaphoreSlim)
+```
 
 ---
 
-## Planned Phases
+## Phases (all complete)
 
 | Phase | Deliverable |
 |---|---|
-| 1 (current) | SimConnect skeleton, WPF window, connection status UI |
-| 2 | SimObject library scanner, AI spawn manager |
-| 3 | Radar renderer (GDI+ / Skia), real-time track display |
-| 4 | ATC controllers: ground/tower/approach/QRA |
-| 5 | TTS engine integration (SAPI / cloud) |
+| 1 | SimConnect skeleton, WPF window, connection status UI |
+| 2 | SimObject library scanner (INI parser), AI spawn manager, SimConnect position stub timer |
+| 3 | WPF RadarControl (Canvas, range rings, data tags, zoom/pan), RadarRendererService with LatLonToScreen |
+| 4 | ATC controllers: Ground/Tower (pushback/taxi/takeoff), Approach/Center (alt/hdg/spd), QRA scramble |
+| 5 | TTS engine (Windows SAPI, SpeechSynthesizer, ATC phrase builder, voice selection) |
+
+---
+
+## Stub Mode vs Real SimConnect
+
+The build flag `SIMCONNECT_AVAILABLE` controls whether the real managed SimConnect wrapper is compiled in.
+
+| Feature | Stub (default) | Real SDK |
+|---|---|---|
+| Connect | Sets `IsConnected = true` instantly | Opens SimConnect session |
+| Spawn | Generates uint ID, stores `SimAircraft` in memory | Calls `AICreateNonATCAircraft` |
+| Position updates | 1 Hz timer, moves aircraft along heading | `RequestDataOnSimObjectType` |
+| Client events | No-op | `TransmitClientEvent` |

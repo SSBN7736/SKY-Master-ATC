@@ -32,6 +32,29 @@ namespace SkyMasterATC.Core.Util
             return (ToDegrees(Math.Atan2(y, x)) + 360) % 360;
         }
 
+        /// <summary>
+        /// Returns the position reached by travelling <paramref name="distanceNm"/> nautical miles
+        /// from the given origin along <paramref name="bearingDeg"/> (true north = 0°).
+        /// </summary>
+        public static (double Lat, double Lon) OffsetPosition(
+            double lat, double lon, double bearingDeg, double distanceNm)
+        {
+            double latRad     = ToRadians(lat);
+            double lonRad     = ToRadians(lon);
+            double angularDist = distanceNm / EarthRadiusNm;
+            double bearingRad = ToRadians(bearingDeg);
+
+            double newLatRad = Math.Asin(
+                Math.Sin(latRad) * Math.Cos(angularDist)
+              + Math.Cos(latRad) * Math.Sin(angularDist) * Math.Cos(bearingRad));
+
+            double newLonRad = lonRad + Math.Atan2(
+                Math.Sin(bearingRad) * Math.Sin(angularDist) * Math.Cos(latRad),
+                Math.Cos(angularDist) - Math.Sin(latRad) * Math.Sin(newLatRad));
+
+            return (ToDegrees(newLatRad), ToDegrees(newLonRad));
+        }
+
         private static double ToRadians(double deg) => deg * Math.PI / 180.0;
         private static double ToDegrees(double rad) => rad * 180.0 / Math.PI;
     }
